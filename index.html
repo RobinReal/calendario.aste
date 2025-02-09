@@ -16,6 +16,24 @@
       text-align: center;
       margin: 10px 0;
     }
+    /* Navigazione per i mesi */
+    #calendarNavigation {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #calendarNavigation button {
+      padding: 8px 16px;
+      margin: 0 5px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #calendarNavigation button:hover {
+      background-color: #0056b3;
+    }
     /* Calendario */
     #calendarContainer {
       margin-bottom: 20px;
@@ -36,6 +54,11 @@
       background-color: #ffeb3b;
       font-weight: bold;
       cursor: pointer;
+    }
+    /* Evidenziazione del giorno corrente in verde chiaro */
+    .current-day {
+      background-color: #90EE90 !important;
+      color: #000;
     }
     /* Dettagli Asta */
     #auctionDetails {
@@ -98,7 +121,6 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    
     /* Media Query per dispositivi mobili */
     @media (max-width: 600px) {
       body {
@@ -111,7 +133,7 @@
       input, textarea {
         font-size: 14px;
       }
-      #toggleFormBtn {
+      #toggleFormBtn, #calendarNavigation button {
         padding: 8px 16px;
         font-size: 14px;
       }
@@ -120,6 +142,12 @@
 </head>
 <body>
   <h1>Calendario Aste - Real Estate 2.0</h1>
+  
+  <!-- Navigazione tra mesi -->
+  <div id="calendarNavigation">
+    <button id="prevMonthBtn">Mese Precedente</button>
+    <button id="nextMonthBtn">Mese Successivo</button>
+  </div>
   
   <!-- Calendario -->
   <div id="calendarContainer">
@@ -191,6 +219,14 @@
         <label for="auctionMapsLink">Link Google Maps:</label>
         <input type="url" id="auctionMapsLink" placeholder="https://www.google.com/maps/..." required>
       </div>
+      <div>
+        <label for="auctionAstaLink">Link Asta:</label>
+        <input type="url" id="auctionAstaLink" placeholder="Inserisci il link custom per l'asta">
+      </div>
+      <div>
+        <label for="auctionImmobiliareLink">Link immobiliare.it:</label>
+        <input type="url" id="auctionImmobiliareLink" placeholder="https://www.immobiliare.it/...">
+      </div>
       <button type="submit">Aggiungi Asta</button>
     </form>
   </div>
@@ -235,13 +271,21 @@
         <label for="editAuctionMapsLink">Link Google Maps:</label>
         <input type="url" id="editAuctionMapsLink" placeholder="https://www.google.com/maps/..." required>
       </div>
+      <div>
+        <label for="editAuctionAstaLink">Link Asta:</label>
+        <input type="url" id="editAuctionAstaLink" placeholder="Inserisci il link custom per l'asta">
+      </div>
+      <div>
+        <label for="editAuctionImmobiliareLink">Link immobiliare.it:</label>
+        <input type="url" id="editAuctionImmobiliareLink" placeholder="https://www.immobiliare.it/...">
+      </div>
       <button type="submit">Salva Modifiche</button>
       <button type="button" id="cancelEditBtn">Annulla</button>
     </form>
   </div>
   
   <script>
-    // Dati iniziali delle aste con link Google Maps
+    // Dati iniziali delle aste (esempio) con i nuovi campi
     let auctions = [
       {
         id: 1,
@@ -253,7 +297,9 @@
         prezzoMedioCommercialeMq: 0,
         prezzoMqAsta: 1008,
         details: "Appartamento piano secondo int. 16 Scala B + box auto piano secondo sottostrada int. 33 Scala A. Salone living, camera matrimoniale con guardaroba, piccola camera, 2 bagni. Mq 122.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Maddalena+19+Caserta"
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Maddalena+19+Caserta",
+        astaLink: "https://www.example.com/asta1", 
+        immobiliareLink: "https://www.immobiliare.it/"
       },
       {
         id: 2,
@@ -265,7 +311,9 @@
         prezzoMedioCommercialeMq: 0,
         prezzoMqAsta: 1367,
         details: "Appartamento piano terzo oltre rialzato, 5 vani, 124mq. Offerta minima pari al prezzo base.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Viale+Primo+Melina+n.4+Portici"
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Viale+Primo+Melina+n.4+Portici",
+        astaLink: "",
+        immobiliareLink: ""
       },
       {
         id: 3,
@@ -277,7 +325,9 @@
         prezzoMedioCommercialeMq: 0,
         prezzoMqAsta: 238,
         details: "Appartamento piano terzo, 6 vani principali + 3 accessori, ampio terrazzo a livello. Mq 155. LIBERO ma in cattivo stato di manutenzione.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Annunziata+18+Acerra"
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Annunziata+18+Acerra",
+        astaLink: "",
+        immobiliareLink: ""
       },
       {
         id: 4,
@@ -289,7 +339,9 @@
         prezzoMedioCommercialeMq: 0,
         prezzoMqAsta: 687,
         details: "Appartamento piano terzo, interno 9, 4 ambienti + triplo servizio. Mq 122 + balcone 11mq + terrazzo 17mq. OCCUPATO dagli esecutati.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Cupa+Spina+20+Napoli"
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Cupa+Spina+20+Napoli",
+        astaLink: "",
+        immobiliareLink: ""
       }
     ];
     
@@ -328,6 +380,10 @@
           } else {
             cell.innerText = date;
             let currentDate = `${String(date).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
+            // Se la data è quella odierna (solo se il mese e anno sono uguali a quelli attuali)
+            if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
+              cell.classList.add("current-day");
+            }
             const auctionsOnDay = auctions.filter(a => a.date === currentDate);
             if (auctionsOnDay.length > 0) {
               cell.classList.add("auction-day");
@@ -356,9 +412,12 @@
           <p>
             <strong>Indirizzo:</strong> ${a.address} 
             <a href="${a.mapsLink}" target="_blank" title="Apri su Google Maps">🗺️</a>
+            ${ a.astaLink ? `<a href="${a.astaLink}" target="_blank" title="Apri link asta">🔨</a>` : "" }
+            ${ a.immobiliareLink ? `<a href="${a.immobiliareLink}" target="_blank" title="Apri immobiliare.it">🏠</a>` : "" }
           </p>
           <p><strong>Prezzo Base Asta:</strong> € ${a.basePrice.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p><strong>Minimo Bonifico:</strong> € ${a.deposit.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p><strong>Prezzo medio commerciale al mq:</strong> € ${a.prezzoMedioCommercialeMq.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p><strong>Prezzo al mq in asta:</strong> € ${a.prezzoMqAsta.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p><strong>Dettagli:</strong> ${a.details}</p>
           <button onclick="removeAuction(${a.id})">Rimuovi Asta</button>
@@ -374,6 +433,25 @@
       generateCalendar(currentMonth, currentYear);
       detailsContent.innerHTML = `<p>Asta rimossa.</p>`;
     }
+    
+    // Navigazione tra mesi
+    document.getElementById("prevMonthBtn").addEventListener("click", function() {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      generateCalendar(currentMonth, currentYear);
+    });
+    
+    document.getElementById("nextMonthBtn").addEventListener("click", function() {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      generateCalendar(currentMonth, currentYear);
+    });
     
     // Bottone per mostrare/nascondere il form Nuova Asta
     toggleFormBtn.addEventListener("click", () => {
@@ -405,7 +483,9 @@
         prezzoMedioCommercialeMq: parseFloat(document.getElementById("auctionCommercialPrice").value),
         prezzoMqAsta: parseFloat(document.getElementById("auctionMqPrice").value),
         details: document.getElementById("auctionDetailsText").value,
-        mapsLink: document.getElementById("auctionMapsLink").value
+        mapsLink: document.getElementById("auctionMapsLink").value,
+        astaLink: document.getElementById("auctionAstaLink").value,
+        immobiliareLink: document.getElementById("auctionImmobiliareLink").value
       };
       
       auctions.push(newAuction);
@@ -430,8 +510,10 @@
       document.getElementById("editAuctionMqPrice").value = auction.prezzoMqAsta;
       document.getElementById("editAuctionDetailsText").value = auction.details;
       document.getElementById("editAuctionMapsLink").value = auction.mapsLink;
+      document.getElementById("editAuctionAstaLink").value = auction.astaLink;
+      document.getElementById("editAuctionImmobiliareLink").value = auction.immobiliareLink;
       
-      // Mostra il form di modifica e nascondi quello nuova asta
+      // Mostra il form di modifica e nascondi quello Nuova Asta
       editAuctionFormDiv.style.display = "block";
       newAuctionFormDiv.style.display = "none";
       toggleFormBtn.innerText = "Nuova Asta";
@@ -455,7 +537,9 @@
         prezzoMedioCommercialeMq: parseFloat(document.getElementById("editAuctionCommercialPrice").value),
         prezzoMqAsta: parseFloat(document.getElementById("editAuctionMqPrice").value),
         details: document.getElementById("editAuctionDetailsText").value,
-        mapsLink: document.getElementById("editAuctionMapsLink").value
+        mapsLink: document.getElementById("editAuctionMapsLink").value,
+        astaLink: document.getElementById("editAuctionAstaLink").value,
+        immobiliareLink: document.getElementById("editAuctionImmobiliareLink").value
       };
       
       editingAuctionId = null;
