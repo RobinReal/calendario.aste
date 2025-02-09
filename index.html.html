@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendario Aste - Real Estate 2.0</title>
+  <style>
+    /* Stili globali */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 20px;
+      padding: 0;
+    }
+    h1, h2, h3 {
+      text-align: center;
+      margin: 10px 0;
+    }
+    /* Calendario */
+    #calendarContainer {
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      min-width: 40px;
+    }
+    .auction-day {
+      background-color: #ffeb3b;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    /* Dettagli Asta */
+    #auctionDetails {
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+    .auction-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+      margin-bottom: 10px;
+    }
+    .auction-item button {
+      padding: 6px 12px;
+      background-color: #dc3545;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-right: 5px;
+    }
+    .auction-item button:hover {
+      background-color: #c82333;
+    }
+    /* Bottone Toggle per Nuova Asta */
+    #toggleFormBtn {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      background-color: #17a2b8;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #toggleFormBtn:hover {
+      background-color: #138496;
+    }
+    /* Form per Nuova Asta e per Modifica Asta */
+    #newAuctionForm,
+    #editAuctionForm {
+      display: none; /* Nascosti inizialmente */
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    form div {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    /* Media Query per dispositivi mobili */
+    @media (max-width: 600px) {
+      body {
+        margin: 10px;
+      }
+      th, td {
+        padding: 6px;
+        font-size: 12px;
+      }
+      input, textarea {
+        font-size: 14px;
+      }
+      #toggleFormBtn {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Calendario Aste - Real Estate 2.0</h1>
+  
+  <!-- Calendario -->
+  <div id="calendarContainer">
+    <h2 id="monthYear"></h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Domenica</th>
+          <th>Lunedì</th>
+          <th>Martedì</th>
+          <th>Mercoledì</th>
+          <th>Giovedì</th>
+          <th>Venerdì</th>
+          <th>Sabato</th>
+        </tr>
+      </thead>
+      <tbody id="calendarBody"></tbody>
+    </table>
+  </div>
+  
+  <!-- Dettagli Asta -->
+  <div id="auctionDetails">
+    <h2>Dettagli Asta</h2>
+    <div id="detailsContent">
+      <p>Seleziona un giorno per visualizzare i dettagli delle aste.</p>
+    </div>
+  </div>
+  
+  <!-- Bottone per mostrare/nascondere il form Nuova Asta -->
+  <button id="toggleFormBtn">Nuova Asta</button>
+  
+  <!-- Form per Nuova Asta -->
+  <div id="newAuctionForm">
+    <h2>Aggiungi Nuova Asta</h2>
+    <form id="auctionForm">
+      <div>
+        <label for="auctionDate">Data Asta (gg/mm/aaaa):</label>
+        <input type="text" id="auctionDate" placeholder="gg/mm/aaaa" pattern="\d{2}/\d{2}/\d{4}" required>
+      </div>
+      <div>
+        <label for="auctionCity">Località:</label>
+        <input type="text" id="auctionCity" placeholder="Città" required>
+      </div>
+      <div>
+        <label for="auctionAddress">Indirizzo:</label>
+        <input type="text" id="auctionAddress" placeholder="Indirizzo" required>
+      </div>
+      <div>
+        <label for="auctionBasePrice">Prezzo Base Asta (€):</label>
+        <input type="number" id="auctionBasePrice" placeholder="Prezzo Base" required>
+      </div>
+      <div>
+        <label for="auctionDeposit">Minimo Bonifico (€):</label>
+        <input type="number" id="auctionDeposit" placeholder="Minimo Bonifico" required>
+      </div>
+      <div>
+        <label for="auctionCommercialPrice">Prezzo medio commerciale al mq (€):</label>
+        <input type="number" id="auctionCommercialPrice" placeholder="Prezzo medio commerciale al mq" required>
+      </div>
+      <div>
+        <label for="auctionMqPrice">Prezzo al mq in asta (€):</label>
+        <input type="number" id="auctionMqPrice" placeholder="Prezzo al mq in asta" required>
+      </div>
+      <div>
+        <label for="auctionDetailsText">Dettagli:</label>
+        <textarea id="auctionDetailsText" placeholder="Dettagli" required></textarea>
+      </div>
+      <div>
+        <label for="auctionMapsLink">Link Google Maps:</label>
+        <input type="url" id="auctionMapsLink" placeholder="https://www.google.com/maps/..." required>
+      </div>
+      <button type="submit">Aggiungi Asta</button>
+    </form>
+  </div>
+  
+  <!-- Form per Modifica Asta -->
+  <div id="editAuctionForm">
+    <h2>Modifica Asta</h2>
+    <form id="editForm">
+      <div>
+        <label for="editAuctionDate">Data Asta (gg/mm/aaaa):</label>
+        <input type="text" id="editAuctionDate" placeholder="gg/mm/aaaa" pattern="\d{2}/\d{2}/\d{4}" required>
+      </div>
+      <div>
+        <label for="editAuctionCity">Località:</label>
+        <input type="text" id="editAuctionCity" placeholder="Città" required>
+      </div>
+      <div>
+        <label for="editAuctionAddress">Indirizzo:</label>
+        <input type="text" id="editAuctionAddress" placeholder="Indirizzo" required>
+      </div>
+      <div>
+        <label for="editAuctionBasePrice">Prezzo Base Asta (€):</label>
+        <input type="number" id="editAuctionBasePrice" placeholder="Prezzo Base" required>
+      </div>
+      <div>
+        <label for="editAuctionDeposit">Minimo Bonifico (€):</label>
+        <input type="number" id="editAuctionDeposit" placeholder="Minimo Bonifico" required>
+      </div>
+      <div>
+        <label for="editAuctionCommercialPrice">Prezzo medio commerciale al mq (€):</label>
+        <input type="number" id="editAuctionCommercialPrice" placeholder="Prezzo medio commerciale al mq" required>
+      </div>
+      <div>
+        <label for="editAuctionMqPrice">Prezzo al mq in asta (€):</label>
+        <input type="number" id="editAuctionMqPrice" placeholder="Prezzo al mq in asta" required>
+      </div>
+      <div>
+        <label for="editAuctionDetailsText">Dettagli:</label>
+        <textarea id="editAuctionDetailsText" placeholder="Dettagli" required></textarea>
+      </div>
+      <div>
+        <label for="editAuctionMapsLink">Link Google Maps:</label>
+        <input type="url" id="editAuctionMapsLink" placeholder="https://www.google.com/maps/..." required>
+      </div>
+      <button type="submit">Salva Modifiche</button>
+      <button type="button" id="cancelEditBtn">Annulla</button>
+    </form>
+  </div>
+  
+  <script>
+    // Dati iniziali delle aste con link Google Maps
+    let auctions = [
+      {
+        id: 1,
+        date: "26/02/2025",
+        city: "Caserta",
+        address: "Via Maddalena 19 P.co Alambra Fraz. San Benedetto",
+        basePrice: 123000,
+        deposit: 9225,
+        prezzoMedioCommercialeMq: 0,
+        prezzoMqAsta: 1008,
+        details: "Appartamento piano secondo int. 16 Scala B + box auto piano secondo sottostrada int. 33 Scala A. Salone living, camera matrimoniale con guardaroba, piccola camera, 2 bagni. Mq 122.",
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Maddalena+19+Caserta"
+      },
+      {
+        id: 2,
+        date: "06/03/2025",
+        city: "Portici",
+        address: "Viale Primo Melina n. 4",
+        basePrice: 169600,
+        deposit: 16960,
+        prezzoMedioCommercialeMq: 0,
+        prezzoMqAsta: 1367,
+        details: "Appartamento piano terzo oltre rialzato, 5 vani, 124mq. Offerta minima pari al prezzo base.",
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Viale+Primo+Melina+n.4+Portici"
+      },
+      {
+        id: 3,
+        date: "18/03/2025",
+        city: "Acerra",
+        address: "Via Annunziata, 18",
+        basePrice: 36843.75,
+        deposit: 2763.28,
+        prezzoMedioCommercialeMq: 0,
+        prezzoMqAsta: 238,
+        details: "Appartamento piano terzo, 6 vani principali + 3 accessori, ampio terrazzo a livello. Mq 155. LIBERO ma in cattivo stato di manutenzione.",
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Annunziata+18+Acerra"
+      },
+      {
+        id: 4,
+        date: "25/03/2025",
+        city: "Napoli",
+        address: "Via Cupa Spina, 20",
+        basePrice: 83814,
+        deposit: 6286.50,
+        prezzoMedioCommercialeMq: 0,
+        prezzoMqAsta: 687,
+        details: "Appartamento piano terzo, interno 9, 4 ambienti + triplo servizio. Mq 122 + balcone 11mq + terrazzo 17mq. OCCUPATO dagli esecutati.",
+        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Cupa+Spina+20+Napoli"
+      }
+    ];
+    
+    // Elementi DOM
+    const monthYearLabel = document.getElementById("monthYear");
+    const calendarBody = document.getElementById("calendarBody");
+    const detailsContent = document.getElementById("detailsContent");
+    const toggleFormBtn = document.getElementById("toggleFormBtn");
+    const newAuctionFormDiv = document.getElementById("newAuctionForm");
+    const editAuctionFormDiv = document.getElementById("editAuctionForm");
+    
+    const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    let today = new Date();
+    let currentMonth = today.getMonth();
+    let currentYear = today.getFullYear();
+    
+    // Variabile per tenere traccia dell'asta in modifica
+    let editingAuctionId = null;
+    
+    // Funzione per generare il calendario
+    function generateCalendar(month, year) {
+      monthYearLabel.innerText = months[month] + " " + year;
+      calendarBody.innerHTML = "";
+      let firstDay = new Date(year, month, 1).getDay();
+      let daysInMonth = new Date(year, month + 1, 0).getDate();
+      let date = 1;
+      
+      for (let i = 0; i < 6; i++) {
+        let row = document.createElement("tr");
+        for (let j = 0; j < 7; j++) {
+          let cell = document.createElement("td");
+          if (i === 0 && j < firstDay) {
+            cell.innerHTML = "";
+          } else if (date > daysInMonth) {
+            break;
+          } else {
+            cell.innerText = date;
+            let currentDate = `${String(date).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
+            const auctionsOnDay = auctions.filter(a => a.date === currentDate);
+            if (auctionsOnDay.length > 0) {
+              cell.classList.add("auction-day");
+              cell.dataset.auctions = JSON.stringify(auctionsOnDay);
+              cell.addEventListener("click", () => showAuctionDetails(currentDate));
+            }
+            date++;
+          }
+          row.appendChild(cell);
+        }
+        calendarBody.appendChild(row);
+      }
+    }
+    
+    // Visualizza i dettagli delle aste per una data specifica
+    function showAuctionDetails(dateStr) {
+      const auctionsOnDay = auctions.filter(a => a.date === dateStr);
+      if (auctionsOnDay.length === 0) {
+        detailsContent.innerHTML = `<p>Nessuna asta prevista per il giorno ${dateStr}.</p>`;
+        return;
+      }
+      let html = `<h3>Aste per il ${dateStr}</h3>`;
+      auctionsOnDay.forEach(a => {
+        html += `<div class="auction-item">
+          <h3>${a.city}</h3>
+          <p>
+            <strong>Indirizzo:</strong> ${a.address} 
+            <a href="${a.mapsLink}" target="_blank" title="Apri su Google Maps">🗺️</a>
+          </p>
+          <p><strong>Prezzo Base Asta:</strong> € ${a.basePrice.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p><strong>Minimo Bonifico:</strong> € ${a.deposit.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p><strong>Prezzo al mq in asta:</strong> € ${a.prezzoMqAsta.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p><strong>Dettagli:</strong> ${a.details}</p>
+          <button onclick="removeAuction(${a.id})">Rimuovi Asta</button>
+          <button onclick="editAuction(${a.id})">Modifica Dati</button>
+        </div>`;
+      });
+      detailsContent.innerHTML = html;
+    }
+    
+    // Funzione per rimuovere un'asta
+    function removeAuction(id) {
+      auctions = auctions.filter(a => a.id !== id);
+      generateCalendar(currentMonth, currentYear);
+      detailsContent.innerHTML = `<p>Asta rimossa.</p>`;
+    }
+    
+    // Bottone per mostrare/nascondere il form Nuova Asta
+    toggleFormBtn.addEventListener("click", () => {
+      if (newAuctionFormDiv.style.display === "none" || newAuctionFormDiv.style.display === "") {
+        newAuctionFormDiv.style.display = "block";
+        toggleFormBtn.innerText = "Nascondi il form";
+      } else {
+        newAuctionFormDiv.style.display = "none";
+        toggleFormBtn.innerText = "Nuova Asta";
+      }
+    });
+    
+    // Gestione del form per aggiungere una nuova asta
+    document.getElementById("auctionForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const inputDate = document.getElementById("auctionDate").value;
+      if (!inputDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        alert("Inserisci la data nel formato gg/mm/aaaa");
+        return;
+      }
+      
+      const newAuction = {
+        id: Date.now(),
+        date: inputDate,
+        city: document.getElementById("auctionCity").value,
+        address: document.getElementById("auctionAddress").value,
+        basePrice: parseFloat(document.getElementById("auctionBasePrice").value),
+        deposit: parseFloat(document.getElementById("auctionDeposit").value),
+        prezzoMedioCommercialeMq: parseFloat(document.getElementById("auctionCommercialPrice").value),
+        prezzoMqAsta: parseFloat(document.getElementById("auctionMqPrice").value),
+        details: document.getElementById("auctionDetailsText").value,
+        mapsLink: document.getElementById("auctionMapsLink").value
+      };
+      
+      auctions.push(newAuction);
+      generateCalendar(currentMonth, currentYear);
+      alert("Asta aggiunta con successo!");
+      e.target.reset();
+    });
+    
+    // Funzione per avviare la modifica di un'asta
+    function editAuction(id) {
+      editingAuctionId = id;
+      const auction = auctions.find(a => a.id === id);
+      if (!auction) return;
+      
+      // Popola il form di modifica con i dati dell'asta selezionata
+      document.getElementById("editAuctionDate").value = auction.date;
+      document.getElementById("editAuctionCity").value = auction.city;
+      document.getElementById("editAuctionAddress").value = auction.address;
+      document.getElementById("editAuctionBasePrice").value = auction.basePrice;
+      document.getElementById("editAuctionDeposit").value = auction.deposit;
+      document.getElementById("editAuctionCommercialPrice").value = auction.prezzoMedioCommercialeMq;
+      document.getElementById("editAuctionMqPrice").value = auction.prezzoMqAsta;
+      document.getElementById("editAuctionDetailsText").value = auction.details;
+      document.getElementById("editAuctionMapsLink").value = auction.mapsLink;
+      
+      // Mostra il form di modifica e nascondi quello nuova asta
+      editAuctionFormDiv.style.display = "block";
+      newAuctionFormDiv.style.display = "none";
+      toggleFormBtn.innerText = "Nuova Asta";
+    }
+    
+    // Gestione del form per modificare un'asta
+    document.getElementById("editForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (!editingAuctionId) return;
+      
+      const index = auctions.findIndex(a => a.id === editingAuctionId);
+      if (index === -1) return;
+      
+      auctions[index] = {
+        id: editingAuctionId,
+        date: document.getElementById("editAuctionDate").value,
+        city: document.getElementById("editAuctionCity").value,
+        address: document.getElementById("editAuctionAddress").value,
+        basePrice: parseFloat(document.getElementById("editAuctionBasePrice").value),
+        deposit: parseFloat(document.getElementById("editAuctionDeposit").value),
+        prezzoMedioCommercialeMq: parseFloat(document.getElementById("editAuctionCommercialPrice").value),
+        prezzoMqAsta: parseFloat(document.getElementById("editAuctionMqPrice").value),
+        details: document.getElementById("editAuctionDetailsText").value,
+        mapsLink: document.getElementById("editAuctionMapsLink").value
+      };
+      
+      editingAuctionId = null;
+      editAuctionFormDiv.style.display = "none";
+      generateCalendar(currentMonth, currentYear);
+      alert("Asta modificata con successo!");
+    });
+    
+    // Bottone per annullare la modifica
+    document.getElementById("cancelEditBtn").addEventListener("click", function() {
+      editingAuctionId = null;
+      editAuctionFormDiv.style.display = "none";
+    });
+    
+    // Inizializza il calendario
+    generateCalendar(currentMonth, currentYear);
+  </script>
+</body>
+</html>
