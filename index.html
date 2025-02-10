@@ -98,7 +98,7 @@
     #toggleFormBtn:hover {
       background-color: #138496;
     }
-    /* Form per Nuova Asta e per Modifica Asta */
+    /* Form per Nuova Asta e Modifica Asta */
     #newAuctionForm,
     #editAuctionForm {
       display: none; /* Nascosti inizialmente */
@@ -284,82 +284,74 @@
     </form>
   </div>
   
-  <script>
-    // Dati iniziali delle aste (esempio) con i nuovi campi
-    let auctions = [
-      {
-        id: 1,
-        date: "26/02/2025",
-        city: "Caserta",
-        address: "Via Maddalena 19 P.co Alambra Fraz. San Benedetto",
-        basePrice: 123000,
-        deposit: 9225,
-        prezzoMedioCommercialeMq: 0,
-        prezzoMqAsta: 1008,
-        details: "Appartamento piano secondo int. 16 Scala B + box auto piano secondo sottostrada int. 33 Scala A. Salone living, camera matrimoniale con guardaroba, piccola camera, 2 bagni. Mq 122.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Maddalena+19+Caserta",
-        astaLink: "https://www.example.com/asta1", 
-        immobiliareLink: "https://www.immobiliare.it/"
-      },
-      {
-        id: 2,
-        date: "06/03/2025",
-        city: "Portici",
-        address: "Viale Primo Melina n. 4",
-        basePrice: 169600,
-        deposit: 16960,
-        prezzoMedioCommercialeMq: 0,
-        prezzoMqAsta: 1367,
-        details: "Appartamento piano terzo oltre rialzato, 5 vani, 124mq. Offerta minima pari al prezzo base.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Viale+Primo+Melina+n.4+Portici",
-        astaLink: "",
-        immobiliareLink: ""
-      },
-      {
-        id: 3,
-        date: "18/03/2025",
-        city: "Acerra",
-        address: "Via Annunziata, 18",
-        basePrice: 36843.75,
-        deposit: 2763.28,
-        prezzoMedioCommercialeMq: 0,
-        prezzoMqAsta: 238,
-        details: "Appartamento piano terzo, 6 vani principali + 3 accessori, ampio terrazzo a livello. Mq 155. LIBERO ma in cattivo stato di manutenzione.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Annunziata+18+Acerra",
-        astaLink: "",
-        immobiliareLink: ""
-      },
-      {
-        id: 4,
-        date: "25/03/2025",
-        city: "Napoli",
-        address: "Via Cupa Spina, 20",
-        basePrice: 83814,
-        deposit: 6286.50,
-        prezzoMedioCommercialeMq: 0,
-        prezzoMqAsta: 687,
-        details: "Appartamento piano terzo, interno 9, 4 ambienti + triplo servizio. Mq 122 + balcone 11mq + terrazzo 17mq. OCCUPATO dagli esecutati.",
-        mapsLink: "https://www.google.com/maps/search/?api=1&query=Via+Cupa+Spina+20+Napoli",
-        astaLink: "",
-        immobiliareLink: ""
-      }
-    ];
+  <!-- Firebase and App Script -->
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
-    // Elementi DOM
+    // Inserisci la tua Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYHQQe734DukRSMNLZOWSujXA5tcuStqM",
+      authDomain: "realestate-2point0.firebaseapp.com",
+      projectId: "realestate-2point0",
+      storageBucket: "realestate-2point0.firebasestorage.app",
+      messagingSenderId: "630032113182",
+      appId: "1:630032113182:web:def123b7baac81dd41180f",
+      measurementId: "G-VHS8DWRV09"
+    };
+    
+    // Inizializza Firebase
+    const appFirebase = initializeApp(firebaseConfig);
+    const db = getFirestore(appFirebase);
+    
+    // Variabili globali e DOM
+    let auctionsData = [];
+    let editingAuctionId = null;
     const monthYearLabel = document.getElementById("monthYear");
     const calendarBody = document.getElementById("calendarBody");
     const detailsContent = document.getElementById("detailsContent");
     const toggleFormBtn = document.getElementById("toggleFormBtn");
     const newAuctionFormDiv = document.getElementById("newAuctionForm");
     const editAuctionFormDiv = document.getElementById("editAuctionForm");
-    
     const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
     let today = new Date();
     let currentMonth = today.getMonth();
     let currentYear = today.getFullYear();
     
-    // Variabile per tenere traccia dell'asta in modifica
-    let editingAuctionId = null;
+    // Funzioni Firestore
+    async function loadAuctions() {
+      const querySnapshot = await getDocs(collection(db, "auctions"));
+      let data = [];
+      querySnapshot.forEach(docSnap => {
+        data.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      return data;
+    }
+    
+    async function saveAuction(auctionData) {
+      try {
+        await addDoc(collection(db, "auctions"), auctionData);
+      } catch (e) {
+        console.error("Errore durante il salvataggio:", e);
+      }
+    }
+    
+    async function updateAuction(auctionId, updatedData) {
+      try {
+        await updateDoc(doc(db, "auctions", auctionId), updatedData);
+      } catch (e) {
+        console.error("Errore durante l'aggiornamento:", e);
+      }
+    }
+    
+    async function removeAuctionFirebase(auctionId) {
+      try {
+        await deleteDoc(doc(db, "auctions", auctionId));
+      } catch (e) {
+        console.error("Errore durante l'eliminazione:", e);
+      }
+    }
     
     // Funzione per generare il calendario
     function generateCalendar(month, year) {
@@ -380,11 +372,11 @@
           } else {
             cell.innerText = date;
             let currentDate = `${String(date).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
-            // Se la data è quella odierna (solo se il mese e anno sono uguali a quelli attuali)
+            // Evidenzia il giorno corrente
             if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
               cell.classList.add("current-day");
             }
-            const auctionsOnDay = auctions.filter(a => a.date === currentDate);
+            const auctionsOnDay = auctionsData.filter(a => a.date === currentDate);
             if (auctionsOnDay.length > 0) {
               cell.classList.add("auction-day");
               cell.dataset.auctions = JSON.stringify(auctionsOnDay);
@@ -398,9 +390,9 @@
       }
     }
     
-    // Visualizza i dettagli delle aste per una data specifica
+    // Funzione per mostrare i dettagli delle aste
     function showAuctionDetails(dateStr) {
-      const auctionsOnDay = auctions.filter(a => a.date === dateStr);
+      const auctionsOnDay = auctionsData.filter(a => a.date === dateStr);
       if (auctionsOnDay.length === 0) {
         detailsContent.innerHTML = `<p>Nessuna asta prevista per il giorno ${dateStr}.</p>`;
         return;
@@ -420,16 +412,17 @@
           <p><strong>Prezzo medio commerciale al mq:</strong> € ${a.prezzoMedioCommercialeMq.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p><strong>Prezzo al mq in asta:</strong> € ${a.prezzoMqAsta.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p><strong>Dettagli:</strong> ${a.details}</p>
-          <button onclick="removeAuction(${a.id})">Rimuovi Asta</button>
-          <button onclick="editAuction(${a.id})">Modifica Dati</button>
+          <button onclick="removeAuction('${a.id}')">Rimuovi Asta</button>
+          <button onclick="editAuction('${a.id}')">Modifica Dati</button>
         </div>`;
       });
       detailsContent.innerHTML = html;
     }
     
     // Funzione per rimuovere un'asta
-    function removeAuction(id) {
-      auctions = auctions.filter(a => a.id !== id);
+    async function removeAuction(id) {
+      await removeAuctionFirebase(id);
+      auctionsData = await loadAuctions();
       generateCalendar(currentMonth, currentYear);
       detailsContent.innerHTML = `<p>Asta rimossa.</p>`;
     }
@@ -443,7 +436,6 @@
       }
       generateCalendar(currentMonth, currentYear);
     });
-    
     document.getElementById("nextMonthBtn").addEventListener("click", function() {
       currentMonth++;
       if (currentMonth > 11) {
@@ -453,7 +445,7 @@
       generateCalendar(currentMonth, currentYear);
     });
     
-    // Bottone per mostrare/nascondere il form Nuova Asta
+    // Toggle form Nuova Asta
     toggleFormBtn.addEventListener("click", () => {
       if (newAuctionFormDiv.style.display === "none" || newAuctionFormDiv.style.display === "") {
         newAuctionFormDiv.style.display = "block";
@@ -464,17 +456,15 @@
       }
     });
     
-    // Gestione del form per aggiungere una nuova asta
-    document.getElementById("auctionForm").addEventListener("submit", function(e) {
+    // Gestione form per aggiungere una nuova asta
+    document.getElementById("auctionForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const inputDate = document.getElementById("auctionDate").value;
       if (!inputDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
         alert("Inserisci la data nel formato gg/mm/aaaa");
         return;
       }
-      
       const newAuction = {
-        id: Date.now(),
         date: inputDate,
         city: document.getElementById("auctionCity").value,
         address: document.getElementById("auctionAddress").value,
@@ -487,8 +477,8 @@
         astaLink: document.getElementById("auctionAstaLink").value,
         immobiliareLink: document.getElementById("auctionImmobiliareLink").value
       };
-      
-      auctions.push(newAuction);
+      await saveAuction(newAuction);
+      auctionsData = await loadAuctions();
       generateCalendar(currentMonth, currentYear);
       alert("Asta aggiunta con successo!");
       e.target.reset();
@@ -497,10 +487,8 @@
     // Funzione per avviare la modifica di un'asta
     function editAuction(id) {
       editingAuctionId = id;
-      const auction = auctions.find(a => a.id === id);
+      const auction = auctionsData.find(a => a.id === id);
       if (!auction) return;
-      
-      // Popola il form di modifica con i dati dell'asta selezionata
       document.getElementById("editAuctionDate").value = auction.date;
       document.getElementById("editAuctionCity").value = auction.city;
       document.getElementById("editAuctionAddress").value = auction.address;
@@ -512,23 +500,16 @@
       document.getElementById("editAuctionMapsLink").value = auction.mapsLink;
       document.getElementById("editAuctionAstaLink").value = auction.astaLink;
       document.getElementById("editAuctionImmobiliareLink").value = auction.immobiliareLink;
-      
-      // Mostra il form di modifica e nascondi quello Nuova Asta
       editAuctionFormDiv.style.display = "block";
       newAuctionFormDiv.style.display = "none";
       toggleFormBtn.innerText = "Nuova Asta";
     }
     
-    // Gestione del form per modificare un'asta
-    document.getElementById("editForm").addEventListener("submit", function(e) {
+    // Gestione form per modificare un'asta
+    document.getElementById("editForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       if (!editingAuctionId) return;
-      
-      const index = auctions.findIndex(a => a.id === editingAuctionId);
-      if (index === -1) return;
-      
-      auctions[index] = {
-        id: editingAuctionId,
+      const updatedData = {
         date: document.getElementById("editAuctionDate").value,
         city: document.getElementById("editAuctionCity").value,
         address: document.getElementById("editAuctionAddress").value,
@@ -541,11 +522,11 @@
         astaLink: document.getElementById("editAuctionAstaLink").value,
         immobiliareLink: document.getElementById("editAuctionImmobiliareLink").value
       };
-      
-      editingAuctionId = null;
-      editAuctionFormDiv.style.display = "none";
+      await updateAuction(editingAuctionId, updatedData);
+      auctionsData = await loadAuctions();
       generateCalendar(currentMonth, currentYear);
       alert("Asta modificata con successo!");
+      editAuctionFormDiv.style.display = "none";
     });
     
     // Bottone per annullare la modifica
@@ -554,8 +535,13 @@
       editAuctionFormDiv.style.display = "none";
     });
     
-    // Inizializza il calendario
-    generateCalendar(currentMonth, currentYear);
+    // Inizializza i dati e il calendario
+    async function initializeApp() {
+      auctionsData = await loadAuctions();
+      generateCalendar(currentMonth, currentYear);
+    }
+    
+    initializeApp();
   </script>
 </body>
 </html>
