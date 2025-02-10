@@ -101,7 +101,7 @@
     /* Form per Nuova Asta e Modifica Asta */
     #newAuctionForm,
     #editAuctionForm {
-      display: none; /* Nascosti inizialmente */
+      display: none;
       background-color: #fff;
       padding: 20px;
       border: 1px solid #ccc;
@@ -286,10 +286,11 @@
   
   <!-- Firebase e Script dell'App -->
   <script type="module">
+    // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
-    // Firebase configuration fornita
+    // Firebase configuration (sostituisci se necessario)
     const firebaseConfig = {
       apiKey: "AIzaSyAYHQQe734DukRSMNLZOWSujXA5tcuStqM",
       authDomain: "realestate-2point0.firebaseapp.com",
@@ -300,9 +301,11 @@
       measurementId: "G-VHS8DWRV09"
     };
     
+    // Inizializza Firebase e Firestore
     const appFirebase = initializeApp(firebaseConfig);
     const db = getFirestore(appFirebase);
     
+    // Variabili globali e DOM
     let auctionsData = [];
     let editingAuctionId = null;
     const monthYearLabel = document.getElementById("monthYear");
@@ -316,6 +319,7 @@
     let currentMonth = today.getMonth();
     let currentYear = today.getFullYear();
     
+    // Funzioni Firestore
     async function loadAuctions() {
       const querySnapshot = await getDocs(collection(db, "auctions"));
       let data = [];
@@ -349,6 +353,7 @@
       }
     }
     
+    // Funzione per generare il calendario
     function generateCalendar(month, year) {
       monthYearLabel.innerText = months[month] + " " + year;
       calendarBody.innerHTML = "";
@@ -366,6 +371,7 @@
           } else {
             cell.innerText = date;
             let currentDate = `${String(date).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
+            // Evidenzia il giorno corrente
             if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
               cell.classList.add("current-day");
             }
@@ -383,6 +389,7 @@
       }
     }
     
+    // Funzione per mostrare i dettagli delle aste per una data specifica
     function showAuctionDetails(dateStr) {
       const auctionsOnDay = auctionsData.filter(a => a.date === dateStr);
       if (auctionsOnDay.length === 0) {
@@ -411,6 +418,7 @@
       detailsContent.innerHTML = html;
     }
     
+    // Funzione per rimuovere un'asta
     async function removeAuction(id) {
       await removeAuctionFirebase(id);
       auctionsData = await loadAuctions();
@@ -418,6 +426,7 @@
       detailsContent.innerHTML = `<p>Asta rimossa.</p>`;
     }
     
+    // Navigazione tra mesi
     document.getElementById("prevMonthBtn").addEventListener("click", function() {
       currentMonth--;
       if (currentMonth < 0) {
@@ -436,6 +445,7 @@
       generateCalendar(currentMonth, currentYear);
     });
     
+    // Toggle per mostrare/nascondere il form Nuova Asta
     toggleFormBtn.addEventListener("click", () => {
       if (newAuctionFormDiv.style.display === "none" || newAuctionFormDiv.style.display === "") {
         newAuctionFormDiv.style.display = "block";
@@ -446,6 +456,7 @@
       }
     });
     
+    // Gestione del form per aggiungere una nuova asta
     document.getElementById("auctionForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const inputDate = document.getElementById("auctionDate").value;
@@ -473,6 +484,7 @@
       e.target.reset();
     });
     
+    // Funzione per avviare la modifica di un'asta
     function editAuction(id) {
       editingAuctionId = id;
       const auction = auctionsData.find(a => a.id === id);
@@ -493,6 +505,7 @@
       toggleFormBtn.innerText = "Nuova Asta";
     }
     
+    // Gestione del form per modificare un'asta
     document.getElementById("editForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       if (!editingAuctionId) return;
@@ -521,6 +534,7 @@
       editAuctionFormDiv.style.display = "none";
     });
     
+    // Inizializza l'app: carica i dati da Firestore e genera il calendario
     async function initializeApp() {
       auctionsData = await loadAuctions();
       generateCalendar(currentMonth, currentYear);
